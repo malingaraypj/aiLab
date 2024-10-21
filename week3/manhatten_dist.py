@@ -11,8 +11,14 @@ class Node:
     def __lt__(self, other):
         return self.f < other.f
 
-def manhattan_distance(current, goal):
-    return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
+def manhattan_distance(state, goal):
+    distance = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0:  # Skip the empty space
+                goal_pos = [(index, row.index(state[i][j])) for index, row in enumerate(goal) if state[i][j] in row][0]
+                distance += abs(i - goal_pos[0]) + abs(j - goal_pos[1])
+    return distance
 
 def reconstruct_path(node):
     path = []
@@ -33,7 +39,7 @@ def get_neighbors(position, grid):
 def a_star(start, goal, grid):
     open_list = []
     closed_list = set()
-    start_node = Node(start, 0, manhattan_distance(start, goal))
+    start_node = Node(start, 0, manhattan_distance(grid, goal))
     heapq.heappush(open_list, start_node)
     
     while open_list:
@@ -47,21 +53,40 @@ def a_star(start, goal, grid):
             if neighbor_pos in closed_list:
                 continue
             g_cost = current_node.g + 1
-            h_cost = manhattan_distance(neighbor_pos, goal)
+            h_cost = manhattan_distance(grid, goal)
             neighbor_node = Node(neighbor_pos, g_cost, h_cost)
             neighbor_node.parent = current_node
             if all(neighbor_node.position != node.position or neighbor_node.g < node.g for node in open_list):
                 heapq.heappush(open_list, neighbor_node)
     return None
 
-# Example usage for a 3x3 grid
-grid = [
-    [0, 0, 0],
-    [0, 1, 0],
-    [0, 0, 0]
-]
-start = (0, 0)
-goal = (2, 2)
+def get_grid_from_input():
+    grid = []
+    print("Enter the initial state (3x3 grid) with 0 for the empty space:")
+    for i in range(3):
+        row = list(map(int, input(f"Enter row {i + 1} (space-separated): ").strip().split()))
+        if len(row) != 3:
+            raise ValueError("Each row must contain exactly 3 numbers.")
+        grid.append(row)
+    return grid
 
-path = a_star(start, goal, grid)
-print(f"Path: {path}")
+def get_goal_from_input():
+    goal = []
+    print("Enter the goal state (3x3 grid):")
+    for i in range(3):
+        row = list(map(int, input(f"Enter row {i + 1} (space-separated): ").strip().split()))
+        if len(row) != 3:
+            raise ValueError("Each row must contain exactly 3 numbers.")
+        goal.append(row)
+    return goal
+
+if __name__ == "__main__":
+    grid = get_grid_from_input()
+    goal = get_goal_from_input()
+    start = [(i, row.index(0)) for i, row in enumerate(grid) if 0 in row][0]
+
+    path = a_star(start, goal, grid)
+    if path:
+        print("Path to goal:", path)
+    else:
+        print("No solution found.")
