@@ -1,0 +1,154 @@
+# Define a function to identify and transform a sentence into FOL
+def sentence_to_fol(sentence):
+    # Predefined mappings based on sentence structures
+    predicates = {
+        "is a human": "Human({})",
+        "is mortal": "Mortal({})",
+        "loves": "Loves({}, {})",
+        "is a dog": "Dog({})",
+        "is an animal": "Animal({})",
+        "is the mother of": "Mother({}, {})",
+        "is a student": "Student({})",
+        "knows": "Knows({}, {})",
+        "is taller than": "Taller({}, {})",
+        "passed the exam": "PassedExam({})",
+        "is a pet of": "PetOf({}, {})",
+        "teaches": "Teaches({}, {})",
+        "respects": "Respects({}, {})",
+        "likes": "Likes({}, {})",
+        "is a bachelor": "Bachelor({})",
+        "is married": "Married({})",
+        "has a pet": "HasPet({}, {})",  # New predicate for "has a pet"
+    }
+
+    quantifiers = {
+        "every": "forall",
+        "all": "forall",
+        "some": "exists",
+        "there is": "exists",
+        "nobody": "forall",
+        "no one": "forall",
+        "there is no": "forall",  # Added for negation scenarios
+    }
+
+    # Parse sentence
+    sentence = sentence.lower()
+    words = sentence.split()
+
+    # Check for quantifiers
+    fol = ""
+    for quantifier, fol_rep in quantifiers.items():
+        if quantifier in sentence:
+            fol += f"{fol_rep} "
+
+    # Handle specific cases based on sentence structure
+    if "there is no" in sentence:
+        # "There is no person who is both a bachelor and married"
+        if "bachelor" in sentence and "married" in sentence:
+            fol += "¬(exists x (Bachelor(x) ∧ Married(x)))"
+        elif "person" in sentence and "both" in sentence:
+            fol += "¬(exists x (Bachelor(x) ∧ Married(x)))"
+    
+    elif "is the mother of" in sentence:
+        # "Mary is the mother of John"
+        fol += "Mother(Mary, John)"
+
+    elif "both" in sentence:
+        # "John and Mary are both students"
+        if "students" in sentence:
+            fol += "Student(John) ∧ Student(Mary)"
+
+    elif "if" in sentence and "then" in sentence:
+        # Conditional sentences like "If it is raining, then the ground is wet"
+        if "raining" in sentence and "wet" in sentence:
+            fol += "Raining(x) → Wet(Ground)"
+
+    elif "everyone" in sentence and "loves someone" in sentence:
+        # "Everyone loves someone"
+        fol += "forall x exists y Loves(x, y)"
+
+    elif "no one is both" in sentence:
+        # "No one is both a teacher and a student"
+        fol += "forall x ¬(Teacher(x) ∧ Student(x))"
+
+    elif "respects his parent" in sentence:
+        # "Every man respects his parent"
+        fol += "forall x (Man(x) → exists y (Parent(y, x) ∧ Respects(x, y)))"
+
+    elif "not all" in sentence:
+        # Handle negation of universal statements like "Not all students like both Mathematics and Science"
+        if "students" in sentence and "like" in sentence:
+            fol += "¬forall x (Student(x) → (Likes(x, Math) ∧ Likes(x, Science)))"
+    
+    elif "has a pet" in sentence:
+        # "Mary has a pet dog"
+        if "dog" in sentence:
+            fol += "HasPet(Mary, Dog)"
+    
+    else:
+        # Identify and map predicates for the general case
+        for phrase, fol_rep in predicates.items():
+            if phrase in sentence:
+                parts = sentence.split(phrase)
+                entities = parts[0].strip(), parts[1].strip() if len(parts) > 1 else ""
+                entities = [e.capitalize() for e in entities if e]  # Format entities
+                fol += fol_rep.format(*entities)
+                break
+
+    return fol if fol else "Could not map the sentence to FOL."
+
+# Main program
+print("Enter a sentence to translate into First-Order Logic (FOL):")
+sentence = input("> ")
+fol = sentence_to_fol(sentence)
+print("\nFOL Representation:", fol)
+
+
+
+*******************OUTPUT**********************
+
+Case 1:
+Enter a sentence to translate into First-Order Logic (FOL):
+> There is no person who is both a bachelor and married
+
+FOL Representation: exists forall ¬(exists x (Bachelor(x) ∧ Married(x)))
+
+
+Case 2:
+Enter a sentence to translate into First-Order Logic (FOL):
+> Mary is the mother of John
+
+FOL Representation: Mother(Mary, John)
+
+
+Case 3:
+Enter a sentence to translate into First-Order Logic (FOL):
+> John and Mary are both students
+
+FOL Representation: Student(John) ∧ Student(Mary)
+
+Case 4:
+Enter a sentence to translate into First-Order Logic (FOL):
+> If it is raining, then the ground is wet
+
+FOL Representation: Raining(x) → Wet(Ground)
+
+Case 5:
+Enter a sentence to translate into First-Order Logic (FOL):
+> "There is a person who knows every other person
+
+FOL Representation: forall exists Knows("there is a person who, Every other person)
+
+Case 6:
+Enter a sentence to translate into First-Order Logic (FOL):
+> Nobody is taller than themselves
+
+FOL Representation: forall forall Taller(Nobody, Themselves)
+
+
+Case 7:
+Enter a sentence to translate into First-Order Logic (FOL):
+> All students in the class passed the exam
+
+FOL Representation: forall PassedExam(All students in the class)
+

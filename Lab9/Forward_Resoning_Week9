@@ -1,0 +1,113 @@
+class KnowledgeBase:
+    def __init__(self):
+        self.facts = set()
+        self.rules = []
+
+    def add_fact(self, fact):
+        self.facts.add(fact)
+
+    def add_rule(self, rule):
+        self.rules.append(rule)
+
+    def forward_chain(self):
+        new_facts = set(self.facts)
+        while True:
+            inferred = set()
+            for rule in self.rules:
+                conclusion, premises = rule
+                if all(premise in self.facts for premise in premises):
+                    if conclusion not in self.facts:
+                        inferred.add(conclusion)
+                        self.facts.add(conclusion)
+            if not inferred:
+                break
+            new_facts.update(inferred)
+        return new_facts
+
+
+def main():
+    kb = KnowledgeBase()
+
+    kb.add_fact("American(Robert)")
+    kb.add_fact("Enemy(A, America)")
+    kb.add_fact("Missile(T1)")
+    kb.add_fact("Owns(A, T1)")
+
+    kb.add_rule(("Weapon(T1)", ["Missile(T1)"]))
+    kb.add_rule(("Hostile(A)", ["Enemy(A, America)"]))
+    kb.add_rule(("Sells(Robert, T1, A)", ["Missile(T1)", "Owns(A, T1)"]))
+    kb.add_rule(("Criminal(Robert)", ["American(Robert)", "Weapon(T1)", "Sells(Robert, T1, A)", "Hostile(A)"]))
+
+    print("Starting forward chaining...")
+    inferred_facts = kb.forward_chain()
+
+    print("\nInferred Facts:")
+    for fact in inferred_facts:
+        print(fact)
+
+    if "Criminal(Robert)" in inferred_facts:
+        print("\nConclusion: Robert is a criminal.")
+    else:
+        print("\nConclusion: Robert is NOT a criminal.")
+
+
+if __name__ == "__main__":
+    main()
+
+****************************OUTPUT****************************
+
+class KnowledgeBase:
+    def __init__(self):
+        self.facts = set()
+        self.rules = []
+
+    def add_fact(self, fact):
+        self.facts.add(fact)
+
+    def add_rule(self, rule):
+        self.rules.append(rule)
+
+    def forward_chain(self):
+        new_facts = set(self.facts)
+        while True:
+            inferred = set()
+            for rule in self.rules:
+                conclusion, premises = rule
+                if all(premise in self.facts for premise in premises):
+                    if conclusion not in self.facts:
+                        inferred.add(conclusion)
+                        self.facts.add(conclusion)
+            if not inferred:
+                break
+            new_facts.update(inferred)
+        return new_facts
+
+
+def main():
+    kb = KnowledgeBase()
+
+    kb.add_fact("American(Robert)")
+    kb.add_fact("Enemy(A, America)")
+    kb.add_fact("Missile(T1)")
+    kb.add_fact("Owns(A, T1)")
+
+    kb.add_rule(("Weapon(T1)", ["Missile(T1)"]))
+    kb.add_rule(("Hostile(A)", ["Enemy(A, America)"]))
+    kb.add_rule(("Sells(Robert, T1, A)", ["Missile(T1)", "Owns(A, T1)"]))
+    kb.add_rule(("Criminal(Robert)", ["American(Robert)", "Weapon(T1)", "Sells(Robert, T1, A)", "Hostile(A)"]))
+
+    print("Starting forward chaining...")
+    inferred_facts = kb.forward_chain()
+
+    print("\nInferred Facts:")
+    for fact in inferred_facts:
+        print(fact)
+
+    if "Criminal(Robert)" in inferred_facts:
+        print("\nConclusion: Robert is a criminal.")
+    else:
+        print("\nConclusion: Robert is NOT a criminal.")
+
+
+if __name__ == "__main__":
+    main()

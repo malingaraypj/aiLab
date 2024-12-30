@@ -1,0 +1,214 @@
+import math
+import random
+
+# Function to print the Tic-Tac-Toe board
+def print_board(board):
+    print("Current Board:")
+    for row in board:
+        print(" | ".join(row))
+    print()
+
+# Check for a terminal state (win or draw)
+def is_terminal(board):
+    for row in board:
+        if row.count(row[0]) == 3 and row[0] != " ":
+            return True
+    for col in range(3):
+        if board[0][col] == board[1][col] == board[2][col] and board[0][col] != " ":
+            return True
+    if board[0][0] == board[1][1] == board[2][2] and board[0][0] != " ":
+        return True
+    if board[0][2] == board[1][1] == board[2][0] and board[0][2] != " ":
+        return True
+    return all(board[r][c] != " " for r in range(3) for c in range(3))  # Draw
+
+# Evaluate the utility of terminal states
+def evaluate(board):
+    for row in board:
+        if row.count("X") == 3:
+            return 10  # AI wins
+        elif row.count("O") == 3:
+            return -10  # User wins
+    for col in range(3):
+        if board[0][col] == board[1][col] == board[2][col]:
+            if board[0][col] == "X":
+                return 10
+            elif board[0][col] == "O":
+                return -10
+    if board[0][0] == board[1][1] == board[2][2]:
+        return 10 if board[0][0] == "X" else -10 if board[0][0] == "O" else 0
+    if board[0][2] == board[1][1] == board[2][0]:
+        return 10 if board[0][2] == "X" else -10 if board[0][2] == "O" else 0
+    return 0  # Draw
+
+# Alpha-Beta Pruning Algorithm
+def alpha_beta(board, depth, alpha, beta, is_maximizing, pruned_nodes):
+    if is_terminal(board):
+        return evaluate(board)
+    
+    if is_maximizing:  # AI
+        best_value = -math.inf
+        for r in range(3):
+            for c in range(3):
+                if board[r][c] == " ":
+                    board[r][c] = "X"
+                    value = alpha_beta(board, depth + 1, alpha, beta, False, pruned_nodes)
+                    board[r][c] = " "  # Undo
+                    best_value = max(best_value, value)
+                    alpha = max(alpha, value)
+                    if beta <= alpha:
+                        pruned_nodes.append((r, c))
+                        return best_value
+        return best_value
+    else:  # User
+        best_value = math.inf
+        for r in range(3):
+            for c in range(3):
+                if board[r][c] == " ":
+                    board[r][c] = "O"
+                    value = alpha_beta(board, depth + 1, alpha, beta, True, pruned_nodes)
+                    board[r][c] = " "  # Undo
+                    best_value = min(best_value, value)
+                    beta = min(beta, value)
+                    if beta <= alpha:
+                        pruned_nodes.append((r, c))
+                        return best_value
+        return best_value
+
+# Find the best move for AI
+def find_best_move(board):
+    best_value = -math.inf
+    best_move = (-1, -1)
+    pruned_nodes = []
+
+    preferred_moves = [(1, 1), (0, 0), (0, 2), (2, 0), (2, 2), (0, 1), (1, 0), (1, 2), (2, 1)]
+    for r, c in preferred_moves:
+        if board[r][c] == " ":
+            board[r][c] = "X"
+            move_value = alpha_beta(board, 0, -math.inf, math.inf, False, pruned_nodes)
+            board[r][c] = " "
+            if move_value > best_value:
+                best_value = move_value
+                best_move = (r, c)
+
+    # Limit the output of pruned nodes to 5 or 6
+    displayed_pruned_nodes = pruned_nodes[:6]
+    print(f"Pruned Nodes: {displayed_pruned_nodes}{'...and more' if len(pruned_nodes) > 6 else ''}")
+    return best_move
+
+# Map single user input to board coordinates
+def input_to_coordinates(cell):
+    mapping = {
+        0: (0, 0), 1: (0, 1), 2: (0, 2),
+        3: (1, 0), 4: (1, 1), 5: (1, 2),
+        6: (2, 0), 7: (2, 1), 8: (2, 2)
+    }
+    return mapping.get(cell)
+
+# Function for AI to choose random position for the first move
+def ai_first_move(board):
+    available_positions = [(r, c) for r in range(3) for c in range(3) if board[r][c] == " "]
+    return random.choice(available_positions)  # Randomly select from available positions
+
+# Main function
+def play_tic_tac_toe():
+    board = [[" " for _ in range(3)] for _ in range(3)]
+    print("Welcome to Tic-Tac-Toe with Alpha-Beta Pruning!")
+    print_board(board)
+
+    # AI's first move (randomly selected)
+    print("AI's First Move (X):")
+    r, c = ai_first_move(board)
+    board[r][c] = "X"
+    print_board(board)
+
+    while not is_terminal(board):
+        # User's move
+        while True:
+            try:
+                user_input = int(input("Your Turn (O): Enter a number (0-8): "))
+                if 0 <= user_input <= 8:
+                    r, c = input_to_coordinates(user_input)
+                    if board[r][c] == " ":
+                        board[r][c] = "O"
+                        break
+                print("Invalid move! Cell is occupied or out of range. Try again.")
+            except ValueError:
+                print("Invalid input! Enter a number between 0 and 8.")
+        print_board(board)
+        if is_terminal(board):
+            break
+
+        # AI's move (after first random move)
+        print("AI's Turn (X):")
+        r, c = find_best_move(board)
+        board[r][c] = "X"
+        print_board(board)
+
+    # Game over
+    if evaluate(board) == 10:
+        print("AI Wins!")
+    elif evaluate(board) == -10:
+        print("You Win!")
+    else:
+        print("It's a Draw!")
+
+if __name__ == "__main__":
+    play_tic_tac_toe()
+
+
+
+*************************OUTPUT**********************
+
+Welcome to Tic-Tac-Toe with Alpha-Beta Pruning!
+Current Board:
+  |   |  
+  |   |  
+  |   |  
+
+AI's First Move (X):
+Current Board:
+  |   |  
+  |   |  
+X |   |  
+
+Your Turn (O): Enter a number (0-8): 0
+Current Board:
+O |   |  
+  |   |  
+X |   |  
+
+AI's Turn (X):
+Pruned Nodes: [(0, 2), (0, 2), (0, 2), (0, 2), (2, 1), (2, 1)]...and more
+Current Board:
+O |   | X
+  |   |  
+X |   |  
+
+Your Turn (O): Enter a number (0-8): 4
+Current Board:
+O |   | X
+  | O |  
+X |   |  
+
+AI's Turn (X):
+Pruned Nodes: [(1, 2), (1, 2), (1, 0), (2, 1), (2, 1), (1, 2)]...and more
+Current Board:
+O |   | X
+  | O |  
+X |   | X
+
+Your Turn (O): Enter a number (0-8): 7
+Current Board:
+O |   | X
+  | O |  
+X | O | X
+
+AI's Turn (X):
+Pruned Nodes: [(0, 1)]
+Current Board:
+O |   | X
+  | O | X
+X | O | X
+
+AI Wins!

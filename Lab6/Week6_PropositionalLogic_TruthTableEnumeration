@@ -1,0 +1,76 @@
+from itertools import product
+
+# Define logical operators
+def implies(p, q):
+    return not p or q
+
+def iff(p, q):
+    return p == q
+
+def tt_entails(kb, query, symbols):
+    """Check if KB entails the query for all truth assignments"""
+    return all(pl_true(kb, model) <= pl_true(query, model) for model in all_models(symbols))
+
+def all_models(symbols):
+    """Generate all possible truth assignments for symbols"""
+    return [dict(zip(symbols, values)) for values in product([True, False], repeat=len(symbols))]
+
+def pl_true(statement, model):
+    """Evaluate a statement in a given model (truth assignment)"""
+    return statement(model)
+
+# Taking user input for symbols, KB, and Query
+symbols = input("Enter the symbols (separated by commas): ").split(',')
+symbols = [symbol.strip() for symbol in symbols]  # Ensure no extra spaces
+
+# Define the KB using a lambda function based on user input
+kb_input = input("Enter the knowledge base using operators (e.g., 'implies(m[\"A\"], m[\"B\"]) and m[\"C\"]'): ")
+kb = eval(f"lambda m: {kb_input}")
+
+# Define the query using a lambda function based on user input
+query_input = input("Enter the query (e.g., 'm[\"B\"]'): ")
+query = eval(f"lambda m: {query_input}")
+
+# Generate and print truth table
+print("\nTruth Table:")
+print(" | ".join(symbols + ["KB", "Query"]))
+print("-" * (len(symbols) * 5 + 15))
+
+for model in all_models(symbols):
+    kb_value = pl_true(kb, model)
+    query_value = pl_true(query, model)
+    values = [model[symbol] for symbol in symbols] + [kb_value, query_value]
+    print(" | ".join(str(v) for v in values))
+
+# Check entailment
+result = tt_entails(kb, query, symbols)
+print("\nDoes KB entail the query?", result)
+
+
+'''Enter the symbols (separated by commas): A, B, C
+Enter the knowledge base using operators (e.g., 'implies(m["A"], m["B"]) and m["C"]'): implies(m["A"], m["B"]) and m["C"]
+Enter the query (e.g., 'm["B"]'): m["B"]
+'''
+
+
+***********************************************
+Output
+
+
+Enter the symbols (separated by commas): A,B,C
+Enter the knowledge base using operators (e.g., 'implies(m["A"], m["B"]) and m["C"]'):  implies(m["A"], m["B"]) and m["C"]
+Enter the query (e.g., 'm["B"]'): m["B"]
+
+Truth Table:
+A | B | C | KB | Query
+------------------------------
+True | True | True | True | True
+True | True | False | False | True
+True | False | True | False | False
+True | False | False | False | False
+False | True | True | True | True
+False | True | False | False | True
+False | False | True | True | False
+False | False | False | False | False
+
+Does KB entail the query? False

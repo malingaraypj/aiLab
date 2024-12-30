@@ -1,0 +1,66 @@
+import random
+import math
+
+class NQueensSimulatedAnnealing:
+    def __init__(self, n):
+        self.n = n
+        self.state = [random.randint(0, n - 1) for _ in range(n)]  # Initial state 1 queen per row in random column
+
+    def calculate_conflicts(self, state):
+        """number of attacking pairs of queens"""
+        conflicts = 0
+        for i in range(self.n):
+            for j in range(i + 1, self.n):
+                if state[i] == state[j] or abs(state[i] - state[j]) == abs(i - j):
+                    conflicts += 1
+        return conflicts
+
+    def simulated_annealing(self, initial_temp=1000, cooling_rate=0.99):
+        """Perform simulated annealing to solve the N-Queens problem."""
+        current_state = self.state[:]
+        current_energy = self.calculate_conflicts(current_state)
+        temp = initial_temp
+        iterations = 0  
+
+        while temp > 1e-3 and current_energy > 0:  # Stop if temperature is low or we reach a solution
+            iterations += 1
+
+            # Create a neighboring state 
+            next_state = current_state[:]
+            row = random.randint(0, self.n - 1)
+            next_state[row] = random.randint(0, self.n - 1)
+            next_energy = self.calculate_conflicts(next_state)
+
+            # probability of accepting a higher-energy state
+            delta_energy = next_energy - current_energy
+            if delta_energy < 0 or random.random() < math.exp(-delta_energy / temp):
+                current_state = next_state
+                current_energy = next_energy
+
+            temp *= cooling_rate
+
+        return current_state, current_energy == 0, iterations  # Return iterations
+
+    def print_solution(self, state):
+        """Print the board with queens in their positions."""
+        for row in range(self.n):
+            line = ""
+            for col in range(self.n):
+                if state[row] == col:
+                    line += "Q "
+                else:
+                    line += ". "
+            print(line)
+
+# input from the user
+n = int(input("Enter the number of queens (N): "))
+
+solver = NQueensSimulatedAnnealing(n)
+solution, success, iterations = solver.simulated_annealing()
+if success:
+    print("\nSolution found:")
+    solver.print_solution(solution)
+    print(f"\nSolution found in {iterations} iterations.")
+else:
+    print("No solution found.")
+    print(f"Algorithm ran for {iterations} iterations.")
